@@ -1,0 +1,73 @@
+service: serverless-framework-training
+
+provider:
+  name: aws
+  runtime: python3.8
+  stage: ${opt:stage, 'dev'} # Set the default stage used. Default is dev
+  region: ${opt:region, 'us-west-2'} # Overwrite the default region used. Default is us-east-1
+
+custom:
+  sqs_queue_name: priority-queue
+  s3_bucket_name: moshe-malka-test-bkt
+
+# you can add statements to the Lambda function's IAM Role here
+iamRoleStatements:
+  - Effect: "Allow"
+    Action:
+      - "sqs:*"
+    Resource:
+      - Fn::GetAtt:
+        - PriorityQueue
+        - Arn 
+
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - sqs:
+          arn: !GetAtt
+            - PriorityQueue
+            - Arn
+          batchSize: 1
+
+# you can add CloudFormation resource templates here 
+resources:
+  Resources:
+    SourceBucket:
+      Type: AWS::S3::Bucket
+      DependsOn:
+        - PriorityQueue
+        - QueuePolicy
+      Properties:
+        BucketName: ${self:custom.s3_bucket_name}
+        NotificationConfiguration:
+          QueueConfigurations:
+            - Event: s3:ObjectCreated:*
+              Queue: !GetAtt PriorityQueue.Arn
+
+    QueuePolicy:
+      Type: AWS::SQS::QueuePolicy
+      DependsOn:
+        - PriorityQueue
+      Properties:
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                AWS: '*'
+              Action:
+                - SQS:*
+              Resource: '*'
+        Queues:
+          - !Ref PriorityQueue
+
+    PriorityQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        DelaySeconds: 0
+        MaximumMessageSize: 262144
+        MessageRetentionPeriod: 864000
+        QueueName: ${self:custom.sqs_queue_name}
+        ReceiveMessageWaitTimeSeconds: 0
+        VisibilityTimeout: 90
