@@ -1,0 +1,22 @@
+{
+  "name": "serverless-framework-training",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Moshe-Malka/Serverless-Framework-Training.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Moshe-Malka/Serverless-Framework-Training/issues"
+  },
+  "homepage": "https://github.com/Moshe-Malka/Serverless-Framework-Training#readme",
+  "dependencies": {
+    "serverless-s3-remover": "^0.6.0"
+  }
+}
